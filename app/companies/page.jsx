@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Epilogue, Red_Hat_Display } from 'next/font/google';
+import Navbar from '@/components/layout/Navbar';
 
 const epilogue = Epilogue({
   subsets: ['latin'],
@@ -47,11 +48,11 @@ export default function CompaniesPage() {
 
   return (
     <div className={`${epilogue.className} min-h-screen bg-gray-50`}>
-      {/* Header */}
-      
-      <section className="bg-white border-b border-gray-200 py-12 px-5 sm:px-10">
-        <div className="max-w-6xl mx-auto">
+      <Navbar />
 
+      {/* Header */}
+      <section className="bg-white border-b border-gray-200 pt-24 pb-12 px-5 sm:px-10">
+        <div className="max-w-6xl mx-auto">
           <h1 className={`${redHat.className} text-4xl sm:text-5xl font-extrabold text-[#25324B] mb-4`}>
             Top Companies
           </h1>

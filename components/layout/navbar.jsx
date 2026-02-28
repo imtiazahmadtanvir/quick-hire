@@ -54,18 +54,37 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-7 ml-12">
-            <Link
-              href="/jobs"
-              className={`${epilogue.className} text-[15px] text-gray-500 hover:text-[#4640DE] font-medium transition-colors`}
-            >
-              Find Jobs
-            </Link>
-            <Link
-              href="/companies"
-              className={`${epilogue.className} text-[15px] text-gray-500 hover:text-[#4640DE] font-medium transition-colors`}
-            >
-              Browse Companies
-            </Link>
+            {user?.role === 'employer' ? (
+              <>
+                <Link
+                  href="/create-job"
+                  className={`${epilogue.className} text-[15px] text-gray-500 hover:text-[#4640DE] font-medium transition-colors`}
+                >
+                  Post a Job
+                </Link>
+                <Link
+                  href="/admin"
+                  className={`${epilogue.className} text-[15px] text-gray-500 hover:text-[#4640DE] font-medium transition-colors`}
+                >
+                  Dashboard
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/jobs"
+                  className={`${epilogue.className} text-[15px] text-gray-500 hover:text-[#4640DE] font-medium transition-colors`}
+                >
+                  Find Jobs
+                </Link>
+                <Link
+                  href="/companies"
+                  className={`${epilogue.className} text-[15px] text-gray-500 hover:text-[#4640DE] font-medium transition-colors`}
+                >
+                  Browse Companies
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Spacer */}
@@ -75,12 +94,14 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-5">
             {user ? (
               <>
-                <Link
-                  href={user.role === 'employer' ? '/admin' : '/dashboard'}
-                  className={`${epilogue.className} text-gray-600 hover:text-[#4640DE] font-semibold text-[15px] transition-colors`}
-                >
-                  {user.role === 'employer' ? 'Dashboard' : 'My Applications'}
-                </Link>
+                {user.role === 'jobseeker' && (
+                  <Link
+                    href="/dashboard"
+                    className={`${epilogue.className} text-gray-600 hover:text-[#4640DE] font-semibold text-[15px] transition-colors`}
+                  >
+                    My Applications
+                  </Link>
+                )}
                 <span className="w-px h-6 bg-gray-200" />
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-[#4640DE]/10 flex items-center justify-center">
@@ -141,27 +162,48 @@ export default function Navbar() {
           }`}
         >
           <div className="pt-2 border-t border-gray-100 space-y-1">
-            <Link
-              href="/jobs"
-              className={`${epilogue.className} block text-gray-600 hover:text-[#4640DE] hover:bg-indigo-50 font-medium py-3 px-3 rounded-lg transition-colors`}
-            >
-              Find Jobs
-            </Link>
-            <Link
-              href="/companies"
-              className={`${epilogue.className} block text-gray-600 hover:text-[#4640DE] hover:bg-indigo-50 font-medium py-3 px-3 rounded-lg transition-colors`}
-            >
-              Browse Companies
-            </Link>
+            {user?.role === 'employer' ? (
+              <>
+                <Link
+                  href="/create-job"
+                  className={`${epilogue.className} block text-gray-600 hover:text-[#4640DE] hover:bg-indigo-50 font-medium py-3 px-3 rounded-lg transition-colors`}
+                >
+                  Post a Job
+                </Link>
+                <Link
+                  href="/admin"
+                  className={`${epilogue.className} block text-gray-600 hover:text-[#4640DE] hover:bg-indigo-50 font-medium py-3 px-3 rounded-lg transition-colors`}
+                >
+                  Dashboard
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/jobs"
+                  className={`${epilogue.className} block text-gray-600 hover:text-[#4640DE] hover:bg-indigo-50 font-medium py-3 px-3 rounded-lg transition-colors`}
+                >
+                  Find Jobs
+                </Link>
+                <Link
+                  href="/companies"
+                  className={`${epilogue.className} block text-gray-600 hover:text-[#4640DE] hover:bg-indigo-50 font-medium py-3 px-3 rounded-lg transition-colors`}
+                >
+                  Browse Companies
+                </Link>
+              </>
+            )}
             <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
               {user ? (
                 <>
-                  <Link
-                    href={user.role === 'employer' ? '/admin' : '/dashboard'}
-                    className={`${epilogue.className} flex-1 text-center text-[#4640DE] font-semibold py-2.5 border border-[#4640DE] rounded-md transition-colors hover:bg-indigo-50`}
-                  >
-                    Dashboard
-                  </Link>
+                  {user.role === 'jobseeker' && (
+                    <Link
+                      href="/dashboard"
+                      className={`${epilogue.className} flex-1 text-center text-[#4640DE] font-semibold py-2.5 border border-[#4640DE] rounded-md transition-colors hover:bg-indigo-50`}
+                    >
+                      My Applications
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     className={`${epilogue.className} flex-1 text-center bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-md transition-colors`}

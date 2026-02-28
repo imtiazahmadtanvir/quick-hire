@@ -4,18 +4,12 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { Epilogue, Red_Hat_Display } from 'next/font/google';
+import { Epilogue } from 'next/font/google';
 import CloudinaryUpload from '@/components/shared/CloudinaryUpload';
 
 const epilogue = Epilogue({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
-  display: 'swap',
-});
-
-const redHat = Red_Hat_Display({
-  subsets: ['latin'],
-  weight: ['700', '800'],
   display: 'swap',
 });
 

@@ -164,11 +164,12 @@ export default function AdminPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [token, setToken] = useState('');
-  const [tab, setTab] = useState('post'); // 'post' | 'jobs'
+  const [tab, setTab] = useState('apps'); // 'apps' | 'jobs' | 'post'
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [editJob, setEditJob] = useState(null);
+  const [expandedJobId, setExpandedJobId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [posting, setPosting] = useState(false);
   const [postError, setPostError] = useState('');
@@ -190,23 +191,26 @@ export default function AdminPage() {
     setLoadingJobs(true);
     try {
       const [jobsRes, appsRes] = await Promise.all([
-        fetch(`/api/jobs?limit=100`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`/api/jobs?mine=true&limit=100`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch('/api/applications', { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       const jobsData = await jobsRes.json();
       const appsData = await appsRes.json();
 
       if (jobsData.success) {
-        // filter to only jobs posted by this user (API returns all public jobs, filter client side)
-        setJobs(jobsData.data.filter((j) => j.postedBy?._id === user?._id || j.postedBy === user?._id));
+        setJobs(jobsData.data);
       }
       if (appsData.success) setApplications(appsData.data);
     } catch { /* ignore */ }
     finally { setLoadingJobs(false); }
-  }, [token, user]);
+  }, [token]);
 
   useEffect(() => {
-    if (tab === 'jobs' && token && user) fetchMyData();
+    if (token && user) fetchMyData();
+  }, [token, user, fetchMyData]);
+
+  useEffect(() => {
+    if ((tab === 'jobs' || tab === 'apps') && token && user) fetchMyData();
   }, [tab, token, user, fetchMyData]);
 
   const handlePost = async (e) => {
@@ -277,7 +281,7 @@ export default function AdminPage() {
 
           {/* Tabs */}
           <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 w-fit">
-            {[{ key: 'post', label: '+ Post a Job' }, { key: 'jobs', label: 'My Jobs' }, { key: 'apps', label: 'Applications' }].map(({ key, label }) => (
+            {[{ key: 'apps', label: 'Applications' }, { key: 'jobs', label: 'My Jobs' }, { key: 'post', label: '+ Post a Job' }].map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => { setTab(key); if (key === 'jobs' || key === 'apps') fetchMyData(); }}
@@ -287,6 +291,65 @@ export default function AdminPage() {
               </button>
             ))}
           </div>
+
+          {/* Applications */}
+          {tab === 'apps' && (
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h2 className="font-bold text-[#25324B]">Applications Received</h2>
+              </div>
+              {loadingJobs ? (
+                <div className="p-8 text-center text-gray-400 text-sm">Loading applications...</div>
+              ) : applications.length === 0 ? (
+                <div className="p-12 text-center text-gray-500">No applications received yet</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-50 text-left">
+                        <th className="px-6 py-3 font-semibold text-gray-500 text-xs uppercase">Applicant</th>
+                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Job</th>
+                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Status</th>
+                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase hidden sm:table-cell">Applied On</th>
+                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Cover Note</th>
+                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Resume</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {applications.map((app) => (
+                        <tr key={app._id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4">
+                            <p className="font-semibold text-[#25324B]">{app.applicantName || app.applicant?.fullName}</p>
+                            <p className="text-xs text-gray-400">{app.applicantEmail || app.applicant?.email}</p>
+                          </td>
+                          <td className="px-4 py-4">
+                            <p className="font-medium text-gray-700">{app.job?.title}</p>
+                            <p className="text-xs text-gray-400">{app.job?.company}</p>
+                          </td>
+                          <td className="px-4 py-4">
+                            <ApplicationStatusBadge status={app.status} appId={app._id} token={token} onUpdate={(id, s) => setApplications((prev) => prev.map((a) => a._id === id ? { ...a, status: s } : a))} />
+                          </td>
+                          <td className="px-4 py-4 text-gray-500 hidden sm:table-cell">
+                            {new Date(app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </td>
+                          <td className="px-4 py-4 text-gray-500 text-xs max-w-45">
+                            {app.coverLetter ? (
+                              <span className="truncate block" title={app.coverLetter}>{app.coverLetter.slice(0, 60)}{app.coverLetter.length > 60 ? '...' : ''}</span>
+                            ) : <span className="text-gray-300">—</span>}
+                          </td>
+                          <td className="px-4 py-4 text-xs">
+                            {(app.resumeLink || app.resume) ? (
+                              <a href={app.resumeLink || app.resume} target="_blank" rel="noopener noreferrer" className="text-[#4640DE] hover:underline font-medium">View</a>
+                            ) : <span className="text-gray-300">—</span>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Post a Job */}
           {tab === 'post' && (
@@ -367,32 +430,54 @@ export default function AdminPage() {
                   <button onClick={() => setTab('post')} className="bg-[#4640DE] text-white font-semibold px-5 py-2 rounded-lg text-sm hover:bg-[#3530b8] transition-colors">Post Your First Job</button>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50 text-left">
-                        <th className="px-6 py-3 font-semibold text-gray-500 text-xs uppercase">Job</th>
-                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Type</th>
-                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase hidden sm:table-cell">Location</th>
-                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase text-center">Applicants</th>
-                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Status</th>
-                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {jobs.map((job) => (
-                        <tr key={job._id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4">
-                            <p className="font-semibold text-[#25324B]">{job.title}</p>
-                            <p className="text-xs text-gray-400">{job.company}</p>
-                          </td>
-                          <td className="px-4 py-4">
+                <div className="divide-y divide-gray-100">
+                  {jobs.map((job) => {
+                    const jobApplicants = applications.filter((a) => a.job?._id === job._id || a.job === job._id);
+                    const isExpanded = expandedJobId === job._id;
+                    return (
+                      <div key={job._id}>
+                        {/* Job row */}
+                        <div className="px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-gray-50 transition-colors">
+                          {/* Logo + title */}
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="w-10 h-10 rounded-lg bg-[#4640DE]/10 flex items-center justify-center shrink-0 overflow-hidden">
+                              {job.companyLogo ? (
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img src={job.companyLogo} alt={job.company} className="w-full h-full object-cover rounded-lg" />
+                              ) : (
+                                <span className="text-[#4640DE] font-bold text-sm">{job.company?.[0]?.toUpperCase()}</span>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-[#25324B] truncate">{job.title}</p>
+                              <p className="text-xs text-gray-400">{job.company} &middot; {job.location}</p>
+                            </div>
+                          </div>
+
+                          {/* Badges */}
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                             <span className="text-xs font-semibold capitalize text-gray-600 bg-gray-100 px-2 py-0.5 rounded">{job.type}</span>
-                          </td>
-                          <td className="px-4 py-4 text-gray-500 hidden sm:table-cell">{job.location}</td>
-                          <td className="px-4 py-4 text-center font-semibold text-[#4640DE]">{job.applicantsCount}</td>
-                          <td className="px-4 py-4"><StatusBadge isActive={job.isActive} /></td>
-                          <td className="px-4 py-4">
+                            <StatusBadge isActive={job.isActive} />
+
+                            {/* Applicants toggle */}
+                            <button
+                              onClick={() => setExpandedJobId(isExpanded ? null : job._id)}
+                              className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
+                                isExpanded
+                                  ? 'bg-[#4640DE] text-white border-[#4640DE]'
+                                  : 'bg-[#4640DE]/5 text-[#4640DE] border-[#4640DE]/20 hover:bg-[#4640DE]/10'
+                              }`}
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              {jobApplicants.length} Applicant{jobApplicants.length !== 1 ? 's' : ''}
+                              <svg className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+
+                            {/* Actions */}
                             <div className="flex items-center gap-2">
                               <Link href={`/jobs/${job._id}`} className="text-xs text-gray-500 hover:text-[#4640DE] font-medium" target="_blank">View</Link>
                               <span className="text-gray-200">|</span>
@@ -400,74 +485,92 @@ export default function AdminPage() {
                               <span className="text-gray-200">|</span>
                               <button onClick={() => handleDelete(job._id)} className="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
                             </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          </div>
+                        </div>
+
+                        {/* Expanded applicants panel */}
+                        {isExpanded && (
+                          <div className="bg-[#F8F8FD] border-t border-[#4640DE]/10 px-6 py-5">
+                            <h3 className="text-sm font-bold text-[#25324B] mb-4 flex items-center gap-2">
+                              <svg className="w-4 h-4 text-[#4640DE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              Applicants for &ldquo;{job.title}&rdquo;
+                            </h3>
+
+                            {jobApplicants.length === 0 ? (
+                              <div className="text-center py-8 text-gray-400 text-sm">
+                                <svg className="w-10 h-10 mx-auto mb-2 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                                </svg>
+                                No applications yet for this job
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {jobApplicants.map((app) => (
+                                  <div key={app._id} className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-3 shadow-sm">
+                                    {/* Applicant header */}
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-full bg-[#4640DE]/10 flex items-center justify-center shrink-0">
+                                          <span className="text-[#4640DE] font-bold text-sm">
+                                            {(app.applicantName || app.applicant?.fullName)?.[0]?.toUpperCase() || '?'}
+                                          </span>
+                                        </div>
+                                        <div>
+                                          <p className="font-semibold text-[#25324B] text-sm">{app.applicantName || app.applicant?.fullName}</p>
+                                          <p className="text-xs text-gray-400">{app.applicantEmail || app.applicant?.email}</p>
+                                        </div>
+                                      </div>
+                                      <ApplicationStatusBadge
+                                        status={app.status}
+                                        appId={app._id}
+                                        token={token}
+                                        onUpdate={(id, s) => setApplications((prev) => prev.map((a) => a._id === id ? { ...a, status: s } : a))}
+                                      />
+                                    </div>
+
+                                    {/* Applied date */}
+                                    <p className="text-xs text-gray-400">
+                                      Applied {new Date(app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </p>
+
+                                    {/* Cover letter preview */}
+                                    {app.coverLetter && (
+                                      <div className="bg-gray-50 rounded-lg px-3 py-2">
+                                        <p className="text-xs font-semibold text-gray-500 mb-1">Cover Note</p>
+                                        <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">{app.coverLetter}</p>
+                                      </div>
+                                    )}
+
+                                    {/* Resume link */}
+                                    {(app.resumeLink || app.resume) && (
+                                      <a
+                                        href={app.resumeLink || app.resume}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 text-xs font-semibold text-[#4640DE] hover:underline"
+                                      >
+                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                        </svg>
+                                        View Resume
+                                      </a>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
           )}
 
-          {/* Applications */}
-          {tab === 'apps' && (
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h2 className="font-bold text-[#25324B]">Applications Received</h2>
-              </div>
-              {loadingJobs ? (
-                <div className="p-8 text-center text-gray-400 text-sm">Loading applications...</div>
-              ) : applications.length === 0 ? (
-                <div className="p-12 text-center text-gray-500">No applications received yet</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50 text-left">
-                        <th className="px-6 py-3 font-semibold text-gray-500 text-xs uppercase">Applicant</th>
-                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Job</th>
-                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Status</th>
-                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase hidden sm:table-cell">Applied On</th>
-                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Cover Letter</th>
-                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Resume</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {applications.map((app) => (
-                        <tr key={app._id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4">
-                            <p className="font-semibold text-[#25324B]">{app.applicant?.fullName}</p>
-                            <p className="text-xs text-gray-400">{app.applicant?.email}</p>
-                          </td>
-                          <td className="px-4 py-4">
-                            <p className="font-medium text-gray-700">{app.job?.title}</p>
-                            <p className="text-xs text-gray-400">{app.job?.company}</p>
-                          </td>
-                          <td className="px-4 py-4">
-                            <ApplicationStatusBadge status={app.status} appId={app._id} token={token} onUpdate={(id, s) => setApplications((prev) => prev.map((a) => a._id === id ? { ...a, status: s } : a))} />
-                          </td>
-                          <td className="px-4 py-4 text-gray-500 hidden sm:table-cell">
-                            {new Date(app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </td>
-                          <td className="px-4 py-4 text-gray-500 text-xs max-w-45">
-                            {app.coverLetter ? (
-                              <span className="truncate block" title={app.coverLetter}>{app.coverLetter.slice(0, 60)}{app.coverLetter.length > 60 ? '...' : ''}</span>
-                            ) : <span className="text-gray-300">—</span>}
-                          </td>
-                          <td className="px-4 py-4 text-xs">
-                            {app.resume ? (
-                              <a href={app.resume} target="_blank" rel="noopener noreferrer" className="text-[#4640DE] hover:underline font-medium">View</a>
-                            ) : <span className="text-gray-300">—</span>}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { Epilogue } from 'next/font/google';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import CloudinaryUpload from '@/components/shared/CloudinaryUpload';
 
 const epilogue = Epilogue({
   subsets: ['latin'],
@@ -31,13 +30,19 @@ function TypeBadge({ type }) {
 }
 
 function ApplyModal({ job, onClose, onSuccess }) {
-  const [coverLetter, setCoverLetter] = useState('');
-  const [resume, setResume] = useState('');
+  const [applicantName, setApplicantName] = useState('');
+  const [applicantEmail, setApplicantEmail] = useState('');
+  const [resumeLink, setResumeLink] = useState('');
+  const [coverNote, setCoverNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!applicantName.trim() || !applicantEmail.trim()) {
+      setError('Name and Email are required');
+      return;
+    }
     setLoading(true);
     setError('');
 
@@ -49,7 +54,13 @@ function ApplyModal({ job, onClose, onSuccess }) {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ jobId: job._id, coverLetter, resume }),
+        body: JSON.stringify({
+          jobId: job._id,
+          applicantName: applicantName.trim(),
+          applicantEmail: applicantEmail.trim(),
+          resumeLink: resumeLink.trim(),
+          coverLetter: coverNote.trim(),
+        }),
       });
 
       const data = await res.json();
@@ -84,29 +95,67 @@ function ApplyModal({ job, onClose, onSuccess }) {
           {error && (
             <div className="bg-[#FF6550]/10 border border-[#FF6550]/20 text-[#FF6550] px-4 py-3 rounded-md text-sm font-medium">{error}</div>
           )}
+
+          {/* Name */}
           <div>
             <label className="block text-sm font-semibold text-[#25324B] mb-2">
-              Cover Letter <span className="text-[#7C8493] font-normal">(optional)</span>
+              Full Name <span className="text-[#FF6550]">*</span>
+            </label>
+            <input
+              type="text"
+              value={applicantName}
+              onChange={(e) => setApplicantName(e.target.value)}
+              placeholder="Enter your full name"
+              required
+              className="w-full px-4 py-3 border border-[#D6DDEB] rounded-md text-sm text-gray-900 placeholder-[#A8ADB7] focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent"
+            />
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-semibold text-[#25324B] mb-2">
+              Email Address <span className="text-[#FF6550]">*</span>
+            </label>
+            <input
+              type="email"
+              value={applicantEmail}
+              onChange={(e) => setApplicantEmail(e.target.value)}
+              placeholder="Enter your email address"
+              required
+              className="w-full px-4 py-3 border border-[#D6DDEB] rounded-md text-sm text-gray-900 placeholder-[#A8ADB7] focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent"
+            />
+          </div>
+
+          {/* Resume Link (URL) */}
+          <div>
+            <label className="block text-sm font-semibold text-[#25324B] mb-2">
+              Resume Link <span className="text-[#7C8493] font-normal">(URL)</span>
+            </label>
+            <input
+              type="url"
+              value={resumeLink}
+              onChange={(e) => setResumeLink(e.target.value)}
+              placeholder="https://drive.google.com/your-resume"
+              className="w-full px-4 py-3 border border-[#D6DDEB] rounded-md text-sm text-gray-900 placeholder-[#A8ADB7] focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent"
+            />
+            <p className="text-xs text-[#A8ADB7] mt-1">Paste a link to your resume (Google Drive, Dropbox, etc.)</p>
+          </div>
+
+          {/* Cover Note */}
+          <div>
+            <label className="block text-sm font-semibold text-[#25324B] mb-2">
+              Cover Note <span className="text-[#7C8493] font-normal">(optional)</span>
             </label>
             <textarea
-              value={coverLetter}
-              onChange={(e) => setCoverLetter(e.target.value)}
-              rows={5}
+              value={coverNote}
+              onChange={(e) => setCoverNote(e.target.value)}
+              rows={4}
               maxLength={2000}
               placeholder="Tell the employer why you're a great fit for this role..."
               className="w-full px-4 py-3 border border-[#D6DDEB] rounded-md text-sm text-[#25324B] placeholder-[#A8ADB7] focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent resize-none"
             />
-            <p className="text-xs text-[#A8ADB7] text-right mt-1">{coverLetter.length}/2000</p>
+            <p className="text-xs text-[#A8ADB7] text-right mt-1">{coverNote.length}/2000</p>
           </div>
-
-          <CloudinaryUpload
-            label="Resume / CV (optional)"
-            onUpload={(url) => setResume(url)}
-            value={resume}
-            folder="quickhire/resumes"
-            type="file"
-            accept=".pdf,.doc,.docx"
-          />
 
           <div className="flex gap-3">
             <button type="button" onClick={onClose} className="flex-1 py-3 border border-[#D6DDEB] rounded-md text-sm font-semibold text-[#515B6F] hover:bg-[#F8F8FD] transition-colors">

@@ -51,7 +51,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { jobId, coverLetter, resume } = body;
+    const { jobId, coverLetter, resume, applicantName, applicantEmail, resumeLink } = body;
 
     if (!jobId) {
       return NextResponse.json({ success: false, message: 'Job ID is required' }, { status: 400 });
@@ -74,6 +74,9 @@ export async function POST(request) {
     const application = await Application.create({
       job: jobId,
       applicant: auth.user.userId,
+      applicantName: applicantName || '',
+      applicantEmail: applicantEmail || '',
+      resumeLink: resumeLink || '',
       coverLetter: coverLetter || '',
       resume: resume || '',
     });

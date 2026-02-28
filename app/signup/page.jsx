@@ -6,7 +6,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Epilogue, Red_Hat_Display } from 'next/font/google';
-import CloudinaryUpload from '@/components/shared/CloudinaryUpload';
 
 const epilogue = Epilogue({
   subsets: ['latin'],
@@ -44,7 +43,6 @@ export default function SignUpPage() {
     password: '',
     confirmPassword: '',
     role: 'jobseeker',
-    profileImage: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -78,7 +76,6 @@ export default function SignUpPage() {
           email: form.email,
           password: form.password,
           role: form.role,
-          profileImage: form.profileImage,
         }),
       });
 
@@ -253,16 +250,6 @@ export default function SignUpPage() {
                 <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
               )}
             </div>
-
-            {/* Profile Image */}
-            <CloudinaryUpload
-              label="Profile Photo (optional)"
-              onUpload={(url) => setForm({ ...form, profileImage: url })}
-              value={form.profileImage}
-              folder="quickhire/profiles"
-              type="image"
-              accept="image/*"
-            />
 
             {/* Role selector */}
             <div>

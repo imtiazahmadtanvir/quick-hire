@@ -114,6 +114,8 @@ export default function JobsPage() {
   const [searchInput, setSearchInput] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [locationInput, setLocationInput] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
   const [pagination, setPagination] = useState({ total: 0, page: 1, pages: 1 });
 
   const fetchJobs = useCallback(async (page = 1) => {
@@ -123,6 +125,7 @@ export default function JobsPage() {
       if (search) params.set('search', search);
       if (selectedType) params.set('type', selectedType);
       if (selectedCategory) params.set('category', selectedCategory);
+      if (selectedLocation) params.set('location', selectedLocation);
       params.set('page', String(page));
       params.set('limit', '12');
 
@@ -137,7 +140,7 @@ export default function JobsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, selectedType, selectedCategory]);
+  }, [search, selectedType, selectedCategory, selectedLocation]);
 
   useEffect(() => {
     fetchJobs(1);
@@ -153,9 +156,11 @@ export default function JobsPage() {
     setSearchInput('');
     setSelectedType('');
     setSelectedCategory('');
+    setLocationInput('');
+    setSelectedLocation('');
   };
 
-  const hasFilters = search || selectedType || selectedCategory;
+  const hasFilters = search || selectedType || selectedCategory || selectedLocation;
 
   return (
     <div className={`${epilogue.className} min-h-screen bg-white`}>
@@ -304,6 +309,36 @@ export default function JobsPage() {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                <div className="h-px bg-[#D6DDEB] mb-6" />
+
+                {/* Location */}
+                <div>
+                  <h3 className="text-xs font-semibold text-[#7C8493] uppercase tracking-wider mb-3">Location</h3>
+                  <form onSubmit={(e) => { e.preventDefault(); setSelectedLocation(locationInput); }} className="flex items-center gap-2">
+                    <div className="flex-1 flex items-center gap-2 px-3 py-2 border border-[#D6DDEB] rounded-md">
+                      <svg className="w-4 h-4 text-[#7C8493] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0zM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                      </svg>
+                      <input
+                        value={locationInput}
+                        onChange={(e) => setLocationInput(e.target.value)}
+                        placeholder="e.g. New York"
+                        className="w-full outline-none text-sm text-[#25324B] placeholder-[#A8ADB7] bg-transparent"
+                      />
+                    </div>
+                    <button type="submit" className="p-2 bg-[#4640DE] hover:bg-[#3530b8] text-white rounded-md transition-colors shrink-0">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </button>
+                  </form>
+                  {selectedLocation && (
+                    <button onClick={() => { setLocationInput(''); setSelectedLocation(''); }} className="mt-2 text-xs text-[#4640DE] hover:underline font-medium">
+                      Clear location
+                    </button>
+                  )}
                 </div>
               </div>
             </aside>

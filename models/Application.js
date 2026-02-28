@@ -12,6 +12,18 @@ const ApplicationSchema = new mongoose.Schema(
       ref: 'User',
       required: [true, 'Applicant reference is required'],
     },
+    applicantName: {
+      type: String,
+      default: '',
+    },
+    applicantEmail: {
+      type: String,
+      default: '',
+    },
+    resumeLink: {
+      type: String,
+      default: '',
+    },
     coverLetter: {
       type: String,
       default: '',

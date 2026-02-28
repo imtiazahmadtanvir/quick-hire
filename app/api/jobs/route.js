@@ -1,22 +1,35 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Job from '@/models/Job';
-import { requireEmployer } from '@/lib/auth';
+import { requireEmployer, getAuthUser } from '@/lib/auth';
 
 // GET /api/jobs — public, paginated, searchable, filterable
+// Pass ?mine=true with auth to get only employer's own jobs (including inactive)
 export async function GET(request) {
   try {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
+    const mine = searchParams.get('mine') === 'true';
     const search = searchParams.get('search') || '';
     const type = searchParams.get('type') || '';
     const category = searchParams.get('category') || '';
     const location = searchParams.get('location') || '';
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
-    const limit = Math.min(20, parseInt(searchParams.get('limit') || '10'));
+    const limit = Math.min(100, parseInt(searchParams.get('limit') || '10'));
 
-    const query = { isActive: true };
+    const query = {};
+
+    // If employer wants their own jobs, filter by postedBy and skip isActive filter
+    if (mine) {
+      const user = getAuthUser(request);
+      if (!user) {
+        return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      }
+      query.postedBy = user.userId;
+    } else {
+      query.isActive = true;
+    }
 
     if (search) {
       query.$or = [
