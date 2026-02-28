@@ -8,11 +8,11 @@ const epilogue = Epilogue({
 });
 
 const companies = [
-  { name: 'Vodafone', logo: '/Vodophone.png', width: 160, height: 40 },
-  { name: 'Intel', logo: '/intel.png', width: 100, height: 40 },
-  { name: 'Tesla', logo: '/Tesla.png', width: 130, height: 30 },
-  { name: 'AMD', logo: '/Amd.png', width: 110, height: 30 },
-  { name: 'Talkit', logo: '/talkit.png', width: 100, height: 35 },
+  { name: 'Vodafone', logo: '/company/Vodophone.png', width: 160, height: 40 },
+  { name: 'Intel', logo: '/company/intel.png', width: 100, height: 40 },
+  { name: 'Tesla', logo: '/company/Tesla.png', width: 130, height: 30 },
+  { name: 'AMD', logo: '/company/Amd.png', width: 110, height: 30 },
+  { name: 'Talkit', logo: '/company/talkit.png', width: 100, height: 35 },
 ];
 
 export default function CompanyBar() {
