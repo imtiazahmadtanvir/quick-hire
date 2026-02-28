@@ -61,6 +61,10 @@ const JobSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    companyLogo: {
+      type: String,
+      default: '',
+    },
   },
   { timestamps: true }
 );

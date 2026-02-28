@@ -62,7 +62,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { title, company, location, type, category, description, requirements, salaryMin, salaryMax, currency } = body;
+    const { title, company, location, type, category, description, requirements, salaryMin, salaryMax, currency, companyLogo } = body;
 
     if (!title || !company || !location || !type || !category || !description) {
       return NextResponse.json(
@@ -84,6 +84,7 @@ export async function POST(request) {
       salaryMin: salaryMin || undefined,
       salaryMax: salaryMax || undefined,
       currency: currency || 'USD',
+      companyLogo: companyLogo || '',
       postedBy: auth.user.userId,
     });
 

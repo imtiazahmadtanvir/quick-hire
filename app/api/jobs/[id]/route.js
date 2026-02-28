@@ -46,7 +46,7 @@ export async function PUT(request, { params }) {
     }
 
     const body = await request.json();
-    const allowedFields = ['title', 'company', 'location', 'type', 'category', 'description', 'requirements', 'salaryMin', 'salaryMax', 'currency', 'isActive'];
+    const allowedFields = ['title', 'company', 'location', 'type', 'category', 'description', 'requirements', 'salaryMin', 'salaryMax', 'currency', 'isActive', 'companyLogo'];
     allowedFields.forEach((field) => {
       if (body[field] !== undefined) job[field] = body[field];
     });

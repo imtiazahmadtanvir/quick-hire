@@ -29,6 +29,10 @@ const UserSchema = new mongoose.Schema(
       enum: ['jobseeker', 'employer'],
       default: 'jobseeker',
     },
+    profileImage: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

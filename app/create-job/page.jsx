@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Epilogue, Red_Hat_Display } from 'next/font/google';
+import CloudinaryUpload from '@/components/shared/CloudinaryUpload';
 
 const epilogue = Epilogue({
   subsets: ['latin'],
@@ -31,6 +32,7 @@ export default function CreateJobPage() {
     description: '',
     requirements: '',
     salary: '',
+    companyLogo: '',
   });
 
   useEffect(() => {
@@ -80,6 +82,7 @@ export default function CreateJobPage() {
         description: form.description,
         requirements: requirementsArray,
         salary: form.salary,
+        companyLogo: form.companyLogo,
       };
 
       const res = await fetch('/api/jobs', {
@@ -146,7 +149,7 @@ export default function CreateJobPage() {
               value={form.title}
               onChange={handleChange}
               placeholder="e.g., Senior React Developer"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4640DE]"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4640DE]"
             />
           </div>
 
@@ -163,7 +166,7 @@ export default function CreateJobPage() {
               value={form.company}
               onChange={handleChange}
               placeholder="e.g., Tech Corp"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4640DE]"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4640DE]"
             />
           </div>
 
@@ -180,7 +183,7 @@ export default function CreateJobPage() {
               value={form.location}
               onChange={handleChange}
               placeholder="e.g., San Francisco, CA"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4640DE]"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4640DE]"
             />
           </div>
 
@@ -195,7 +198,7 @@ export default function CreateJobPage() {
                 name="type"
                 value={form.type}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4640DE]"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4640DE]"
               >
                 <option>Full Time</option>
                 <option>Part Time</option>
@@ -213,7 +216,7 @@ export default function CreateJobPage() {
                 name="category"
                 value={form.category}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4640DE]"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4640DE]"
               >
                 <option>Technology</option>
                 <option>Design</option>
@@ -226,6 +229,16 @@ export default function CreateJobPage() {
               </select>
             </div>
           </div>
+
+          {/* Company Logo */}
+          <CloudinaryUpload
+            label="Company Logo (optional)"
+            onUpload={(url) => setForm({ ...form, companyLogo: url })}
+            value={form.companyLogo}
+            folder="quickhire/logos"
+            type="image"
+            accept="image/*"
+          />
 
           {/* Description */}
           <div>
@@ -240,7 +253,7 @@ export default function CreateJobPage() {
               onChange={handleChange}
               placeholder="Describe the job role, responsibilities, and what success looks like..."
               rows={6}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4640DE] resize-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4640DE] resize-none"
             />
           </div>
 
@@ -257,7 +270,7 @@ export default function CreateJobPage() {
               onChange={handleChange}
               placeholder="Enter each requirement on a new line&#10;e.g.,&#10;5+ years of React experience&#10;Strong JavaScript knowledge&#10;Experience with REST APIs"
               rows={5}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4640DE] resize-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4640DE] resize-none"
             />
           </div>
 
@@ -273,7 +286,7 @@ export default function CreateJobPage() {
               value={form.salary}
               onChange={handleChange}
               placeholder="e.g., $80,000 - $120,000"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4640DE]"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4640DE]"
             />
           </div>
 

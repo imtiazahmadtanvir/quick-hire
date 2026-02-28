@@ -6,7 +6,7 @@ import { signToken } from '@/lib/jwt';
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { fullName, email, password, role } = body;
+    const { fullName, email, password, role, profileImage } = body;
 
     // Validation
     if (!fullName || !email || !password) {
@@ -40,6 +40,7 @@ export async function POST(request) {
       email: email.toLowerCase(),
       password,
       role: role || 'jobseeker',
+      profileImage: profileImage || '',
     });
 
     // Generate JWT

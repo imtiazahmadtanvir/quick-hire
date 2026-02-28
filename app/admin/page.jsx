@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
+import CloudinaryUpload from '@/components/shared/CloudinaryUpload';
 
 const JOB_TYPES = ['full-time', 'part-time', 'remote', 'contract', 'internship'];
 const CATEGORIES = [
@@ -14,7 +15,7 @@ const CATEGORIES = [
 const EMPTY_FORM = {
   title: '', company: '', location: '', type: 'full-time',
   category: 'Technology', description: '', salaryMin: '', salaryMax: '',
-  currency: 'USD', requirements: [''],
+  currency: 'USD', requirements: [''], companyLogo: '',
 };
 
 function StatCard({ label, value, color }) {
@@ -40,7 +41,7 @@ function EditModal({ job, token, onClose, onSaved }) {
     type: job.type, category: job.category, description: job.description,
     salaryMin: job.salaryMin || '', salaryMax: job.salaryMax || '',
     currency: job.currency || 'USD', requirements: job.requirements?.length ? job.requirements : [''],
-    isActive: job.isActive,
+    isActive: job.isActive, companyLogo: job.companyLogo || '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -92,16 +93,24 @@ function EditModal({ job, token, onClose, onSaved }) {
             <InputField label="Min Salary" type="number" value={form.salaryMin} onChange={(v) => setForm({ ...form, salaryMin: v })} placeholder="e.g. 50000" />
             <InputField label="Max Salary" type="number" value={form.salaryMax} onChange={(v) => setForm({ ...form, salaryMax: v })} placeholder="e.g. 80000" />
           </div>
+          <CloudinaryUpload
+            label="Company Logo (optional)"
+            onUpload={(url) => setForm({ ...form, companyLogo: url })}
+            value={form.companyLogo}
+            folder="quickhire/logos"
+            type="image"
+            accept="image/*"
+          />
           <div>
             <label className="block text-sm font-semibold text-[#25324B] mb-1.5">Description <span className="text-red-500">*</span></label>
-            <textarea rows={4} required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent resize-none" />
+            <textarea rows={4} required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent resize-none" />
           </div>
           <div>
             <label className="block text-sm font-semibold text-[#25324B] mb-2">Requirements</label>
             <div className="space-y-2">
               {form.requirements.map((r, i) => (
                 <div key={i} className="flex gap-2">
-                  <input value={r} onChange={(e) => setReq(i, e.target.value)} placeholder={`Requirement ${i + 1}`} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent" />
+                  <input value={r} onChange={(e) => setReq(i, e.target.value)} placeholder={`Requirement ${i + 1}`} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent" />
                   {form.requirements.length > 1 && (
                     <button type="button" onClick={() => removeReq(i)} className="text-red-400 hover:text-red-600 px-2">✕</button>
                   )}
@@ -134,7 +143,7 @@ function InputField({ label, value, onChange, type = 'text', placeholder, requir
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         required={required}
-        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent bg-white"
+        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent bg-white"
       />
     </div>
   );
@@ -144,7 +153,7 @@ function SelectField({ label, value, onChange, options }) {
   return (
     <div>
       <label className="block text-sm font-semibold text-[#25324B] mb-1.5">{label}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent bg-white capitalize">
+      <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent bg-white capitalize">
         {options.map((o) => <option key={o} value={o} className="capitalize">{o}</option>)}
       </select>
     </div>
@@ -209,7 +218,7 @@ export default function AdminPage() {
       const res = await fetch('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ...form, requirements: form.requirements.filter(Boolean), salaryMin: form.salaryMin || undefined, salaryMax: form.salaryMax || undefined }),
+        body: JSON.stringify({ ...form, requirements: form.requirements.filter(Boolean), salaryMin: form.salaryMin || undefined, salaryMax: form.salaryMax || undefined, companyLogo: form.companyLogo || '' }),
       });
       const data = await res.json();
       if (!res.ok) { setPostError(data.message); }
@@ -298,6 +307,15 @@ export default function AdminPage() {
                   <InputField label="Max Salary" type="number" value={form.salaryMax} onChange={(v) => setForm({ ...form, salaryMax: v })} placeholder="e.g. 80000" />
                 </div>
 
+                <CloudinaryUpload
+                  label="Company Logo (optional)"
+                  onUpload={(url) => setForm({ ...form, companyLogo: url })}
+                  value={form.companyLogo}
+                  folder="quickhire/logos"
+                  type="image"
+                  accept="image/*"
+                />
+
                 <div>
                   <label className="block text-sm font-semibold text-[#25324B] mb-1.5">Description <span className="text-red-500">*</span></label>
                   <textarea
@@ -306,7 +324,7 @@ export default function AdminPage() {
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
                     placeholder="Describe the role, responsibilities, and what makes it great..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent resize-none"
                   />
                 </div>
 
@@ -315,7 +333,7 @@ export default function AdminPage() {
                   <div className="space-y-2">
                     {form.requirements.map((r, i) => (
                       <div key={i} className="flex gap-2">
-                        <input value={r} onChange={(e) => setReq(i, e.target.value)} placeholder={`Requirement ${i + 1}`} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent" />
+                        <input value={r} onChange={(e) => setReq(i, e.target.value)} placeholder={`Requirement ${i + 1}`} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4640DE] focus:border-transparent" />
                         {form.requirements.length > 1 && (
                           <button type="button" onClick={() => setForm({ ...form, requirements: form.requirements.filter((_, idx) => idx !== i) })} className="text-red-400 hover:text-red-600 font-semibold px-2">✕</button>
                         )}
@@ -412,6 +430,7 @@ export default function AdminPage() {
                         <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Status</th>
                         <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase hidden sm:table-cell">Applied On</th>
                         <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Cover Letter</th>
+                        <th className="px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Resume</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -434,6 +453,11 @@ export default function AdminPage() {
                           <td className="px-4 py-4 text-gray-500 text-xs max-w-45">
                             {app.coverLetter ? (
                               <span className="truncate block" title={app.coverLetter}>{app.coverLetter.slice(0, 60)}{app.coverLetter.length > 60 ? '...' : ''}</span>
+                            ) : <span className="text-gray-300">—</span>}
+                          </td>
+                          <td className="px-4 py-4 text-xs">
+                            {app.resume ? (
+                              <a href={app.resume} target="_blank" rel="noopener noreferrer" className="text-[#4640DE] hover:underline font-medium">View</a>
                             ) : <span className="text-gray-300">—</span>}
                           </td>
                         </tr>

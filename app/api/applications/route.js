@@ -51,7 +51,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { jobId, coverLetter } = body;
+    const { jobId, coverLetter, resume } = body;
 
     if (!jobId) {
       return NextResponse.json({ success: false, message: 'Job ID is required' }, { status: 400 });
@@ -75,6 +75,7 @@ export async function POST(request) {
       job: jobId,
       applicant: auth.user.userId,
       coverLetter: coverLetter || '',
+      resume: resume || '',
     });
 
     // Increment applicant count on the job
