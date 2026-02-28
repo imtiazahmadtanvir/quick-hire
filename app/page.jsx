@@ -1,5 +1,7 @@
 import Navbar from '@/components/layout/Navbar';
 import Hero from '@/components/home/HeroSection';
+import CompanyBar from '@/components/home/CompanyBar';
+import CategoryGrid from '@/components/home/CategoryGrid';
 import Footer from '@/components/layout/Footer';
 
 export default function Home() {
@@ -7,6 +9,8 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       <Navbar />
       <Hero />
+      <CompanyBar />
+      <CategoryGrid />
       <Footer />
     </div>
   );
