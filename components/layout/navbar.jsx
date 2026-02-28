@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Epilogue, Red_Hat_Display } from 'next/font/google';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const epilogue = Epilogue({
   subsets: ['latin'],
@@ -19,6 +19,21 @@ const redHat = Red_Hat_Display({
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (stored) {
+      try { setUser(JSON.parse(stored)); } catch { /* ignore */ }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    window.location.href = '/';
+  };
 
   return (
     <nav className="fixed w-full top-0 z-50 bg-white/95 backdrop-blur-sm">
@@ -58,19 +73,47 @@ export default function Navbar() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden lg:flex items-center gap-5">
-            <Link
-              href="/login"
-              className={`${epilogue.className} text-[#4640DE] hover:text-[#3530b8] font-semibold text-[15px] transition-colors`}
-            >
-              Login
-            </Link>
-            <span className="w-px h-6 bg-gray-200" />
-            <Link
-              href="/signup"
-              className={`${epilogue.className} bg-[#4640DE] hover:bg-[#3530b8] text-white font-semibold text-[15px] px-6 py-2.5 rounded-md transition-colors`}
-            >
-              Sign Up
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  href={user.role === 'employer' ? '/admin' : '/dashboard'}
+                  className={`${epilogue.className} text-gray-600 hover:text-[#4640DE] font-semibold text-[15px] transition-colors`}
+                >
+                  {user.role === 'employer' ? 'Dashboard' : 'My Applications'}
+                </Link>
+                <span className="w-px h-6 bg-gray-200" />
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-[#4640DE]/10 flex items-center justify-center">
+                    <span className="text-[#4640DE] font-bold text-sm">{user.fullName?.[0]?.toUpperCase()}</span>
+                  </div>
+                  <span className={`${epilogue.className} text-gray-700 font-medium text-[15px]`}>
+                    {user.fullName?.split(' ')[0]}
+                  </span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className={`${epilogue.className} text-gray-500 hover:text-red-500 font-medium text-[15px] transition-colors`}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className={`${epilogue.className} text-[#4640DE] hover:text-[#3530b8] font-semibold text-[15px] transition-colors`}
+                >
+                  Login
+                </Link>
+                <span className="w-px h-6 bg-gray-200" />
+                <Link
+                  href="/signup"
+                  className={`${epilogue.className} bg-[#4640DE] hover:bg-[#3530b8] text-white font-semibold text-[15px] px-6 py-2.5 rounded-md transition-colors`}
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -111,18 +154,37 @@ export default function Navbar() {
               Browse Companies
             </Link>
             <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
-              <Link
-                href="/login"
-                className={`${epilogue.className} flex-1 text-center text-[#4640DE] font-semibold py-2.5 border border-[#4640DE] rounded-md transition-colors hover:bg-indigo-50`}
-              >
-                Login
-              </Link>
-              <Link
-                href="/signup"
-                className={`${epilogue.className} flex-1 text-center bg-[#4640DE] hover:bg-[#3530b8] text-white font-semibold py-2.5 rounded-md transition-colors`}
-              >
-                Sign Up
-              </Link>
+              {user ? (
+                <>
+                  <Link
+                    href={user.role === 'employer' ? '/admin' : '/dashboard'}
+                    className={`${epilogue.className} flex-1 text-center text-[#4640DE] font-semibold py-2.5 border border-[#4640DE] rounded-md transition-colors hover:bg-indigo-50`}
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className={`${epilogue.className} flex-1 text-center bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-md transition-colors`}
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className={`${epilogue.className} flex-1 text-center text-[#4640DE] font-semibold py-2.5 border border-[#4640DE] rounded-md transition-colors hover:bg-indigo-50`}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className={`${epilogue.className} flex-1 text-center bg-[#4640DE] hover:bg-[#3530b8] text-white font-semibold py-2.5 rounded-md transition-colors`}
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
